@@ -1,49 +1,41 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
-    <title>🚦 Bot System Status</title>
+    <title>🚦 AsmanDip Trading Bot Status</title>
     <meta http-equiv="refresh" content="10">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #0e101c;
-            color: #ffffff;
-            padding: 20px;
-        }
-        h1 {
-            color: #00ffcc;
-        }
-        .status-box {
-            background: #1e2132;
-            padding: 20px;
-            border-radius: 10px;
-            width: 500px;
-        }
-        p {
-            font-size: 18px;
-            line-height: 1.6;
-        }
-        .footer {
-            margin-top: 20px;
-            color: #888;
-        }
+        body { font-family: Arial; background: #121212; color: #f5f5f5; padding: 20px; }
+        .box { background: #1f1f1f; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        h1 { color: #00ffcc; }
+        .label { color: #999; font-weight: bold; }
     </style>
 </head>
 <body>
     <h1>🚦 Bot System Status</h1>
-    <div class="status-box">
-        <p><strong>Timestamp:</strong> {{ data.timestamp }}</p>
-        <p><strong>CPU Usage:</strong> {{ data.cpu }}%</p>
-        <p><strong>RAM Usage:</strong> {{ data.ram }}%</p>
-        <p><strong>Disk Usage:</strong> {{ data.disk }}%</p>
-        <p><strong>Bot Status:</strong> {{ data.bot_status }}</p>
-        <p><strong>Trades Executed:</strong> {{ data.trades_executed }}</p>
-        <p><strong>Total PnL:</strong> {{ data.total_pnl }}</p>
-        <p><strong>Last Signal:</strong> {{ data.last_signal }}</p>
+    <div class="box">
+        <p><span class="label">Timestamp:</span> {{ data.timestamp }}</p>
+        <p><span class="label">CPU Usage:</span> {{ data.cpu }}%</p>
+        <p><span class="label">RAM Usage:</span> {{ data.ram }}%</p>
+        <p><span class="label">Disk Usage:</span> {{ data.disk }}%</p>
+        <p><span class="label">Bot Status:</span> {{ data.bot_status }}</p>
+        <p><span class="label">Trades Executed:</span> {{ data.trades_executed }}</p>
+        <p><span class="label">Total PnL:</span> {{ data.total_pnl }}</p>
+        <p><span class="label">Last Signal:</span> {{ data.last_signal }}</p>
     </div>
-    <div class="footer">
-        <p>Last updated at {{ data.timestamp }} | Developed by AsmanDip Trading Bot System</p>
+
+    <div class="box">
+        <h2>📊 Scanned Pairs</h2>
+        <ul>
+        {% for scan in data.scan_results %}
+            <li><strong>{{ scan.symbol }}</strong> — RSI: {{ scan.indicators.RSI }}, EMA: {{ scan.indicators.EMA }}</li>
+        {% endfor %}
+        </ul>
     </div>
+
+    <footer>
+        <p>Last updated at {{ data.timestamp }}<br>
+        Developed by <strong>AsmanDip Trading Bot System</strong></p>
+    </footer>
 </body>
 </html>
