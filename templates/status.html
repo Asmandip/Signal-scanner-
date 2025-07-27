@@ -2,86 +2,97 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>System Status Dashboard</title>
-    <meta http-equiv="refresh" content="30">
+    <title>Bot System Status</title>
+    <meta http-equiv="refresh" content="10"> <!-- Auto refresh every 10s -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #0f172a;
-            color: #f8fafc;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 40px 20px;
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #121212;
+            color: #f5f5f5;
+            margin: 0;
+            padding: 0;
         }
-
+        .container {
+            max-width: 900px;
+            margin: auto;
+            padding: 20px;
+        }
         h1 {
-            color: #38bdf8;
-            margin-bottom: 10px;
-            text-shadow: 1px 1px 4px #000;
+            color: #00ffcc;
+            text-align: center;
         }
-
-        .timestamp {
-            font-size: 0.9em;
-            color: #94a3b8;
-            margin-bottom: 20px;
-        }
-
         .status-box {
-            background-color: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 12px;
-            padding: 25px 30px;
-            width: 100%;
-            max-width: 500px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            background-color: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            box-shadow: 0 0 10px #00ffcc30;
         }
-
         .status-item {
             display: flex;
             justify-content: space-between;
-            padding: 12px 0;
-            border-bottom: 1px solid #334155;
+            padding: 10px 0;
+            border-bottom: 1px solid #333;
         }
-
         .status-item:last-child {
             border-bottom: none;
         }
-
         .label {
-            font-weight: 600;
-            color: #e2e8f0;
-        }
-
-        .value {
             font-weight: bold;
+            color: #ccc;
         }
-
-        .running { color: #22c55e; }
-        .stopped, .error { color: #ef4444; }
-        .warning { color: #facc15; }
+        .value {
+            color: #fff;
+        }
+        .footer {
+            text-align: center;
+            font-size: 0.9em;
+            color: #888;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
-    <h1>🔧 System Status</h1>
-    <div class="timestamp">Last Updated: {{ status.timestamp }}</div>
-
-    <div class="status-box">
-        <div class="status-item">
-            <div class="label">📡 Scanner</div>
-            <div class="value {{ 'running' if status.scanner == 'Running' else 'stopped' }}">{{ status.scanner }}</div>
+    <div class="container">
+        <h1>🚦 Bot System Status</h1>
+        <div class="status-box">
+            <div class="status-item">
+                <span class="label">Timestamp:</span>
+                <span class="value">{{ data.timestamp }}</span>
+            </div>
+            <div class="status-item">
+                <span class="label">CPU Usage:</span>
+                <span class="value">{{ data.cpu_usage }}%</span>
+            </div>
+            <div class="status-item">
+                <span class="label">RAM Usage:</span>
+                <span class="value">{{ data.ram_usage }}%</span>
+            </div>
+            <div class="status-item">
+                <span class="label">Disk Usage:</span>
+                <span class="value">{{ data.disk_usage }}%</span>
+            </div>
+            <div class="status-item">
+                <span class="label">Bot Status:</span>
+                <span class="value">{{ data.bot_status }}</span>
+            </div>
+            <div class="status-item">
+                <span class="label">Trades Executed:</span>
+                <span class="value">{{ data.trades_executed }}</span>
+            </div>
+            <div class="status-item">
+                <span class="label">Total PnL:</span>
+                <span class="value">{{ data.total_pnl }}</span>
+            </div>
+            <div class="status-item">
+                <span class="label">Last Signal:</span>
+                <span class="value">{{ data.last_signal }}</span>
+            </div>
         </div>
-        <div class="status-item">
-            <div class="label">🔄 Current Pair</div>
-            <div class="value">{{ status.current_pair }}</div>
-        </div>
-        <div class="status-item">
-            <div class="label">📨 Telegram</div>
-            <div class="value {{ 'running' if status.telegram_status == 'Connected' else 'error' }}">{{ status.telegram_status }}</div>
-        </div>
-        <div class="status-item">
-            <div class="label">⚙️ API Status</div>
-            <div class="value {{ 'running' if status.api_status == 'OK' else 'warning' }}">{{ status.api_status }}</div>
+        <div class="footer">
+            Last updated at {{ data.timestamp }}<br>
+            Developed by AsmanDip Trading Bot System
         </div>
     </div>
 </body>
