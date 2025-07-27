@@ -1,10 +1,11 @@
 {
-  "timestamp": "Loading...",
+  "timestamp": "Initializing...",
   "cpu": 0,
   "ram": 0,
   "disk": 0,
-  "bot_status": "Initializing",
+  "bot_status": "Starting",
   "trades_executed": 0,
-  "total_pnl": "0",
-  "last_signal": "None"
+  "total_pnl": 0,
+  "last_signal": {},
+  "scan_results": []
 }
