@@ -1,10 +1,10 @@
 {
-  "timestamp": "2025-07-27 09:10:00",
-  "cpu_usage": 12.5,
-  "ram_usage": 47.8,
-  "disk_usage": 75.2,
-  "bot_status": "Running",
-  "trades_executed": 14,
-  "total_pnl": "+324.77 USDT",
-  "last_signal": "BUY BTC/USDT @ 59200"
+  "timestamp": "Loading...",
+  "cpu": 0,
+  "ram": 0,
+  "disk": 0,
+  "bot_status": "Initializing",
+  "trades_executed": 0,
+  "total_pnl": "0",
+  "last_signal": "None"
 }
