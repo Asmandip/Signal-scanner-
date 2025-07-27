@@ -1,83 +1,71 @@
-
-import asyncio
 import os
-import pandas as pd
+import time
+import json
+import psutil
+import datetime
+from flask import Flask, render_template
 from dotenv import load_dotenv
-from aiohttp import ClientSession
-from flask import Flask
-from bitget_scanner import get_bitget_pairs
-from signal_generator import analyze_signals
-from telegram_notifier import send_telegram_message
+from threading import Thread
 
 load_dotenv()
 
 app = Flask(__name__)
-TELEGRAM_CHAT_ID = os.getenv("CHAT_ID")
 
-async def fetch_candles(session, symbol):
-    try:
-        url = f"https://api.bitget.com/api/v2/mix/market/candles?symbol={symbol}&granularity=3m&limit=100"
-        async with session.get(url) as response:
-            if response.status == 200:
-                data = await response.json()
-                df = pd.DataFrame(data['data'])
-                df.columns = ['timestamp', 'open', 'high', 'low', 'close', 'volume', 'turnover']
-                df = df.iloc[::-1]
-                df["close"] = pd.to_numeric(df["close"])
-                df["high"] = pd.to_numeric(df["high"])
-                df["low"] = pd.to_numeric(df["low"])
-                return df
-            else:
-                print(f"⚠️ Failed to fetch candles for {symbol} | Status: {response.status}")
-    except Exception as e:
-        print(f"❌ Exception fetching candles for {symbol}: {e}")
-    return None
+# === Status Data ===
+status_data = {
+    "bot_health": {"status": "Initializing", "uptime": "0", "cpu": "0%", "memory": "0MB"},
+    "scanner": {"current": "None", "total": 0, "last_scan": "Never"},
+    "telegram": {"last_sent": "Never", "status": "Not Connected"},
+    "api": {"ping": "Unknown", "last_response": "Never"},
+    "ai_filter": {"last_score": 0.0, "decision": "Pending"},
+    "trade": {"last_pair": "None", "side": "None", "status": "None"},
+    "backtest": {"last_run": "Never", "winrate": "0%", "tested": 0},
+    "mongo": {"last_write": "Never", "total_logs": 0},
+    "env": {
+        "telegram": bool(os.getenv("TELEGRAM_TOKEN")),
+        "bitget": bool(os.getenv("BITGET_API_KEY")),
+        "mongo": bool(os.getenv("MONGO_URI"))
+    },
+    "logs": {"last_errors": []}
+}
 
-async def scan_and_signal():
-    print("📡 Starting market scan...")
-    pairs = await get_bitget_pairs()
+# === Save status to JSON ===
+def update_status():
+    with open("status.json", "w") as f:
+        json.dump(status_data, f, indent=2)
 
-    if not pairs:
-        print("❌ No futures pairs found!")
-        return
+# === Track uptime ===
+start_time = time.time()
 
-    print(f"✅ Total Pairs Fetched: {len(pairs)}")
+def update_live_status():
+    while True:
+        try:
+            uptime = str(datetime.timedelta(seconds=int(time.time() - start_time)))
+            status_data["bot_health"]["uptime"] = uptime
+            status_data["bot_health"]["status"] = "Running ✅"
+            status_data["bot_health"]["cpu"] = f"{psutil.cpu_percent()}%"
+            status_data["bot_health"]["memory"] = f"{round(psutil.virtual_memory().used / (1024**2))}MB"
+            update_status()
+        except Exception as e:
+            error_log(str(e))
+        time.sleep(60)  # Update every 60 seconds
 
-    async with ClientSession() as session:
-        for symbol in pairs:
-            print(f"🔍 Scanning {symbol}...")
-            df = await fetch_candles(session, symbol)
-            if df is None or df.empty:
-                print(f"⛔ No valid data for {symbol}")
-                continue
+def error_log(msg):
+    timestamp = datetime.datetime.now().strftime("%H:%M:%S")
+    err = f"[{timestamp}] {msg}"
+    status_data["logs"]["last_errors"] = [err] + status_data["logs"]["last_errors"][:9]
+    update_status()
 
-            signal_data = analyze_signals(df)
-            if signal_data:
-                message = (
-                    f"📊 Signal Alert for {symbol}\n"
-                    f"🔁 Signal: {signal_data['signal']}\n"
-                    f"💰 Price: {signal_data['price']}\n"
-                    f"📈 RSI: {signal_data['rsi']}\n"
-                    f"🛡️ ATR: {signal_data['atr']}\n"
-                    f"✅ Confirmations:\n - " + "\n - ".join(signal_data['confirmations'])
-                )
-                print(f"📤 Sending Telegram Message:\n{message}")
-                await send_telegram_message(message, TELEGRAM_CHAT_ID)
-            else:
-                print(f"🚫 No signal for {symbol}")
-            await asyncio.sleep(0.3)
+# === Flask Route ===
+@app.route('/status')
+def show_status():
+    with open("status.json") as f:
+        data = json.load(f)
+    return render_template("status.html", data=data)
 
-@app.route('/')
-def index():
-    return '🚀 Signal Bot is Running!'
+# === Start background thread ===
+Thread(target=update_live_status, daemon=True).start()
 
-def start_loop():
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    loop.create_task(scan_and_signal())
-    return loop
-
-if __name__ == '__main__':
-    loop = start_loop()
-    port = int(os.environ.get("PORT", 8000))
-    app.run(host='0.0.0.0', port=port)
+# === Your bot logic will go below this ===
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8000)
