@@ -2,74 +2,48 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="10">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🚦 Bot System Status</title>
+    <meta http-equiv="refresh" content="10">
     <style>
         body {
             font-family: Arial, sans-serif;
-            background: #111;
-            color: #f8f8f8;
-            margin: 0;
+            background: #0e101c;
+            color: #ffffff;
             padding: 20px;
-        }
-        .container {
-            max-width: 600px;
-            margin: auto;
-            background: #222;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 0 15px #333;
         }
         h1 {
-            text-align: center;
             color: #00ffcc;
-            margin-bottom: 20px;
         }
-        .status-item {
-            margin: 12px 0;
-            padding: 12px;
-            background: #333;
-            border-left: 6px solid #00ffcc;
-            border-radius: 6px;
+        .status-box {
+            background: #1e2132;
+            padding: 20px;
+            border-radius: 10px;
+            width: 500px;
         }
-        .label {
-            font-weight: bold;
-            color: #aaa;
-        }
-        .value {
-            font-size: 1.2em;
-            color: #fff;
+        p {
+            font-size: 18px;
+            line-height: 1.6;
         }
         .footer {
-            text-align: center;
-            margin-top: 30px;
-            font-size: 0.9em;
+            margin-top: 20px;
             color: #888;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🚦 Bot System Status</h1>
-        
-        {% if data %}
-        <div class="status-item"><span class="label">Timestamp:</span> <span class="value">{{ data.timestamp }}</span></div>
-        <div class="status-item"><span class="label">CPU Usage:</span> <span class="value">{{ data.cpu }}%</span></div>
-        <div class="status-item"><span class="label">RAM Usage:</span> <span class="value">{{ data.ram }}%</span></div>
-        <div class="status-item"><span class="label">Disk Usage:</span> <span class="value">{{ data.disk }}%</span></div>
-        <div class="status-item"><span class="label">Bot Status:</span> <span class="value">{{ data.bot_status }}</span></div>
-        <div class="status-item"><span class="label">Trades Executed:</span> <span class="value">{{ data.trades_executed }}</span></div>
-        <div class="status-item"><span class="label">Total PnL:</span> <span class="value">{{ data.total_pnl }}</span></div>
-        <div class="status-item"><span class="label">Last Signal:</span> <span class="value">{{ data.last_signal }}</span></div>
-        {% else %}
-        <p>Loading system status...</p>
-        {% endif %}
-
-        <div class="footer">
-            ⏱️ Last updated at {{ data.timestamp if data else "N/A" }}<br>
-            ⚙️ Developed by <strong>AsmanDip Trading Bot System</strong>
-        </div>
+    <h1>🚦 Bot System Status</h1>
+    <div class="status-box">
+        <p><strong>Timestamp:</strong> {{ data.timestamp }}</p>
+        <p><strong>CPU Usage:</strong> {{ data.cpu }}%</p>
+        <p><strong>RAM Usage:</strong> {{ data.ram }}%</p>
+        <p><strong>Disk Usage:</strong> {{ data.disk }}%</p>
+        <p><strong>Bot Status:</strong> {{ data.bot_status }}</p>
+        <p><strong>Trades Executed:</strong> {{ data.trades_executed }}</p>
+        <p><strong>Total PnL:</strong> {{ data.total_pnl }}</p>
+        <p><strong>Last Signal:</strong> {{ data.last_signal }}</p>
+    </div>
+    <div class="footer">
+        <p>Last updated at {{ data.timestamp }} | Developed by AsmanDip Trading Bot System</p>
     </div>
 </body>
 </html>
