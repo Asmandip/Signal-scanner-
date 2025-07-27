@@ -1,0 +1,34 @@
+import json, os, time, psutil
+from datetime import datetime
+
+def update_status(
+    scanner_status="Idle",
+    current_pair="None",
+    telegram_status="Disconnected",
+    api_status="Unknown",
+    trade_status="Idle",
+    last_signal="N/A",
+    open_positions=0,
+    current_balance="$0"
+):
+    uptime = time.time() - psutil.boot_time()
+    uptime_str = time.strftime("%H:%M:%S", time.gmtime(uptime))
+    
+    data = {
+        "cpu_usage": f"{psutil.cpu_percent()}%",
+        "memory_usage": f"{psutil.virtual_memory().percent}%",
+        "disk_usage": f"{psutil.disk_usage('/').percent}%",
+        "uptime": uptime_str,
+        "scanner_status": scanner_status,
+        "current_pair": current_pair,
+        "telegram_status": telegram_status,
+        "api_status": api_status,
+        "trade_status": trade_status,
+        "last_signal": last_signal,
+        "open_positions": open_positions,
+        "current_balance": current_balance,
+        "last_updated": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+    }
+
+    with open("status.json", "w") as f:
+        json.dump(data, f, indent=4)
