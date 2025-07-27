@@ -1,75 +1,17 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Live Bot Status</title>
+    <meta charset="UTF-8">
+    <title>AsmanDip Bot Status</title>
+    <meta http-equiv="refresh" content="60">
     <style>
-        body { font-family: Arial, sans-serif; background: #f0f0f0; padding: 20px; }
-        .box { background: #fff; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 0 5px #ccc; }
-        h2 { color: #333; }
-        .green { color: green; font-weight: bold; }
-        .red { color: red; font-weight: bold; }
+        body { font-family: Arial; background: #111; color: #0f0; padding: 20px; }
+        h1 { color: #fff; }
+        pre { background: #222; padding: 15px; border-radius: 5px; overflow-x: auto; }
     </style>
 </head>
 <body>
-    <h2>📊 AsmanDip Live Bot Dashboard</h2>
-
-    <div class="box">
-        <h3>🤖 Bot Health</h3>
-        <p>Status: <span class="green">{{ data['bot_health']['status'] }}</span></p>
-        <p>Uptime: {{ data['bot_health']['uptime'] }}</p>
-        <p>CPU: {{ data['bot_health']['cpu'] }} | RAM: {{ data['bot_health']['memory'] }}</p>
-    </div>
-
-    <div class="box">
-        <h3>🔍 Scanner</h3>
-        <p>Current Pair: {{ data['scanner']['current'] }}</p>
-        <p>Total Scanned: {{ data['scanner']['total'] }}</p>
-        <p>Last Scan: {{ data['scanner']['last_scan'] }}</p>
-    </div>
-
-    <div class="box">
-        <h3>💬 Telegram</h3>
-        <p>Status: {{ data['telegram']['status'] }}</p>
-        <p>Last Sent: {{ data['telegram']['last_sent'] }}</p>
-    </div>
-
-    <div class="box">
-        <h3>🔑 API</h3>
-        <p>Status: {{ data['api']['ping'] }}</p>
-        <p>Last Response: {{ data['api']['last_response'] }}</p>
-    </div>
-
-    <div class="box">
-        <h3>📦 Trade</h3>
-        <p>Last Trade: {{ data['trade']['last_pair'] }} ({{ data['trade']['side'] }})</p>
-        <p>Status: {{ data['trade']['status'] }}</p>
-    </div>
-
-    <div class="box">
-        <h3>🧠 AI Filter</h3>
-        <p>Score: {{ data['ai_filter']['last_score'] }}</p>
-        <p>Decision: {{ data['ai_filter']['decision'] }}</p>
-    </div>
-
-    <div class="box">
-        <h3>🧪 Backtest</h3>
-        <p>Last Run: {{ data['backtest']['last_run'] }}</p>
-        <p>Winrate: {{ data['backtest']['winrate'] }} | Pairs Tested: {{ data['backtest']['tested'] }}</p>
-    </div>
-
-    <div class="box">
-        <h3>🧰 Environment Check</h3>
-        <p>Telegram Token: {{ '✅' if data['env']['telegram'] else '❌' }}</p>
-        <p>Bitget API: {{ '✅' if data['env']['bitget'] else '❌' }}</p>
-        <p>Mongo URI: {{ '✅' if data['env']['mongo'] else '❌' }}</p>
-    </div>
-
-    <div class="box">
-        <h3>⚠️ Last Errors</h3>
-        {% for error in data['logs']['last_errors'] %}
-            <p class="red">{{ error }}</p>
-        {% endfor %}
-    </div>
-
+    <h1>AsmanDip Future Bot: Live Status</h1>
+    <pre>{{ data | tojson(indent=2) }}</pre>
 </body>
 </html>
