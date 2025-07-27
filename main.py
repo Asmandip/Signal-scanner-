@@ -1,4 +1,4 @@
-limport asyncio, aiohttp, json, os, datetime, psutil
+import asyncio, aiohttp, json, os, datetime, psutil
 from flask import Flask, render_template
 from dotenv import load_dotenv
 from ta.momentum import RSIIndicator
