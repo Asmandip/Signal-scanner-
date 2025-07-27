@@ -2,16 +2,87 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>AsmanDip Bot Status</title>
-    <meta http-equiv="refresh" content="60">
+    <title>System Status Dashboard</title>
+    <meta http-equiv="refresh" content="30">
     <style>
-        body { font-family: Arial; background: #111; color: #0f0; padding: 20px; }
-        h1 { color: #fff; }
-        pre { background: #222; padding: 15px; border-radius: 5px; overflow-x: auto; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        h1 {
+            color: #38bdf8;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 4px #000;
+        }
+
+        .timestamp {
+            font-size: 0.9em;
+            color: #94a3b8;
+            margin-bottom: 20px;
+        }
+
+        .status-box {
+            background-color: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 25px 30px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #334155;
+        }
+
+        .status-item:last-child {
+            border-bottom: none;
+        }
+
+        .label {
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+
+        .value {
+            font-weight: bold;
+        }
+
+        .running { color: #22c55e; }
+        .stopped, .error { color: #ef4444; }
+        .warning { color: #facc15; }
     </style>
 </head>
 <body>
-    <h1>AsmanDip Future Bot: Live Status</h1>
-    <pre>{{ data | tojson(indent=2) }}</pre>
+    <h1>🔧 System Status</h1>
+    <div class="timestamp">Last Updated: {{ status.timestamp }}</div>
+
+    <div class="status-box">
+        <div class="status-item">
+            <div class="label">📡 Scanner</div>
+            <div class="value {{ 'running' if status.scanner == 'Running' else 'stopped' }}">{{ status.scanner }}</div>
+        </div>
+        <div class="status-item">
+            <div class="label">🔄 Current Pair</div>
+            <div class="value">{{ status.current_pair }}</div>
+        </div>
+        <div class="status-item">
+            <div class="label">📨 Telegram</div>
+            <div class="value {{ 'running' if status.telegram_status == 'Connected' else 'error' }}">{{ status.telegram_status }}</div>
+        </div>
+        <div class="status-item">
+            <div class="label">⚙️ API Status</div>
+            <div class="value {{ 'running' if status.api_status == 'OK' else 'warning' }}">{{ status.api_status }}</div>
+        </div>
+    </div>
 </body>
 </html>
