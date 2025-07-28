@@ -5,21 +5,31 @@ from flask import Flask
 from dotenv import load_dotenv
 from scanner import run_scanner
 
-Load environment variables
-
+# Load environment variables
 load_dotenv()
 
-Flask setup
+# Flask setup
+app = Flask(__name__)
 
-app = Flask(name)
+@app.route('/')
+def index():
+    return "✅ AsmanDip Future Scanner Bot is Running"
 
-@app.route('/') def index(): return "✅ AsmanDip Future Scanner Bot is Running"
+@app.route('/status')
+def status():
+    return "🟢 Scanner Status: Active"
 
-@app.route('/status') def status(): return "🟢 Scanner Status: Active"
+def start_async_loop():
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(run_scanner())
 
-def start_async_loop(): loop = asyncio.new_event_loop() asyncio.set_event_loop(loop) loop.run_until_complete(run_scanner())
+def start_bot():
+    print("🟢 Starting AsmanDip Future Scanner Bot...")
+    print("📡 Scanner started...")
+    scanner_thread = threading.Thread(target=start_async_loop)
+    scanner_thread.start()
 
-def start_bot(): print("🟢 Starting AsmanDip Future Scanner Bot...") print("📡 Scanner started...") scanner_thread = threading.Thread(target=start_async_loop) scanner_thread.start()
-
-if name == 'main': start_bot() app.run(host='0.0.0.0', port=8000)
-
+if __name__ == '__main__':
+    start_bot()
+    app.run(host='0.0.0.0', port=8000)
