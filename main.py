@@ -1,6 +1,9 @@
-main.py
-
-import os import asyncio import threading from flask import Flask from dotenv import load_dotenv from scanner import run_scanner
+import os
+import asyncio
+import threading
+from flask import Flask
+from dotenv import load_dotenv
+from scanner import run_scanner
 
 Load environment variables
 
