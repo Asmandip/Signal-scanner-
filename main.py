@@ -1,27 +1,40 @@
 import asyncio
+from scanner import scan_market
+from telegram_bot import send_telegram_alert
 from flask import Flask
-from scanner import run_scanner
-import threading
-import logging
+import os
+from dotenv import load_dotenv
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("scanner")
-
+load_dotenv()
 app = Flask(__name__)
 
 @app.route("/")
 def home():
-    return "✅ AsmanDip Future Signal Bot is LIVE!"
+    return "✅ AsmanDip Bot is Running..."
 
-def start_async_loop():
-    asyncio.run(run_scanner())
+async def main_loop():
+    while True:
+        try:
+            print("🔍 Scanning market...")
+            signals = await scan_market()
+            for symbol, signal in signals:
+                msg = (
+                    f"📈 *Signal: {symbol}*\n"
+                    f"🟢 Confirmations: {signal['confirmations']}/5\n"
+                    f"💵 Close: {signal['close']}\n"
+                    f"📉 RSI: {signal['rsi']}\n"
+                    f"📊 EMA(20): {signal['ema']}\n"
+                    f"📈 MACD: {signal['macd']}, Signal: {signal['macd_signal']}\n"
+                    f"📦 Volume: {signal['volume']}\n"
+                    f"🌊 ATR: {signal['atr']}\n"
+                    f"#bitget #future #signal"
+                )
+                await send_telegram_alert(msg)
+        except Exception as e:
+            print(f"❌ Error in main loop: {e}")
+        await asyncio.sleep(180)  # every 3 minutes
 
 if __name__ == "__main__":
-    logger.info("🟢 Starting AsmanDip Future Scanner Bot...")
-
-    # Start async scanner in background thread
-    thread = threading.Thread(target=start_async_loop)
-    thread.start()
-
-    # Start Flask app
+    loop = asyncio.get_event_loop()
+    loop.create_task(main_loop())
     app.run(host="0.0.0.0", port=8000)
