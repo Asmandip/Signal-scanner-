@@ -1,107 +1,42 @@
 import aiohttp
 import asyncio
-import pandas as pd
-import datetime
-import time
-from ta.momentum import RSIIndicator
-from ta.trend import EMAIndicator, MACD
-from ta.volatility import AverageTrueRange
-from dotenv import load_dotenv
-import os
 import logging
-from utils.telegram import send_telegram_message  # make sure this exists
 
-load_dotenv()
+from utils.telegram import send_telegram_message  # নিশ্চিত করুন এই ফাইল ও ফাংশন ঠিক আছে
 
-INTERVAL = "3m"
-LIMIT = 100
-RSI_PERIOD = 14
-RSI_OVERBOUGHT = 70
-RSI_OVERSOLD = 30
-
-HEADERS = {
-    "Content-Type": "application/json"
-}
-
-async def fetch_klines(session, symbol):
-    url = f"https://api.bitget.com/api/v2/mix/market/candles?symbol={symbol}&granularity={INTERVAL}&limit={LIMIT}"
-    try:
-        async with session.get(url, headers=HEADERS) as resp:
-            if resp.status == 200:
-                data = await resp.json()
-                df = pd.DataFrame(data['data'], columns=[
-                    "timestamp", "open", "high", "low", "close", "volume", "quoteVolume"
-                ])
-                df["close"] = pd.to_numeric(df["close"])
-                df["high"] = pd.to_numeric(df["high"])
-                df["low"] = pd.to_numeric(df["low"])
-                df["open"] = pd.to_numeric(df["open"])
-                df["volume"] = pd.to_numeric(df["volume"])
-                df["timestamp"] = pd.to_datetime(df["timestamp"], unit="ms")
-                return df
-    except Exception as e:
-        logging.warning(f"Error fetching {symbol}: {str(e)}")
-    return None
-
-def analyze_data(df):
-    rsi = RSIIndicator(close=df["close"], window=RSI_PERIOD).rsi()
-    df["rsi"] = rsi
-    macd = MACD(close=df["close"])
-    df["macd"] = macd.macd_diff()
-    ema = EMAIndicator(close=df["close"], window=20)
-    df["ema"] = ema.ema_indicator()
-    atr = AverageTrueRange(high=df["high"], low=df["low"], close=df["close"], window=14)
-    df["atr"] = atr.average_true_range()
-    return df
-
-async def scan_symbol(session, symbol):
-    df = await fetch_klines(session, symbol)
-    if df is None or len(df) < RSI_PERIOD:
-        return
-
-    df = analyze_data(df)
-    last = df.iloc[-1]
-
-    confirmations = 0
-    reasons = []
-
-    if last["rsi"] <= RSI_OVERSOLD:
-        confirmations += 1
-        reasons.append(f"🔻 RSI: {round(last['rsi'],2)}")
-
-    if last["rsi"] >= RSI_OVERBOUGHT:
-        confirmations += 1
-        reasons.append(f"🔺 RSI: {round(last['rsi'],2)}")
-
-    if last["close"] > last["ema"]:
-        confirmations += 1
-        reasons.append("📈 Above EMA")
-
-    if last["macd"] > 0:
-        confirmations += 1
-        reasons.append("✅ MACD Bullish")
-
-    if confirmations >= 3:
-        direction = "BUY" if last["rsi"] < 50 else "SELL"
-        signal = f"""
-📡 Signal Alert: {symbol}
-📊 Action: {direction}
-🧠 Confirmations: {confirmations}/4
-{chr(10).join(reasons)}
-📈 Price: {round(last['close'], 4)}
-🕒 Time: {last['timestamp'].strftime('%H:%M:%S')}
-"""
-        await send_telegram_message(signal)
-
-async def run_scanner():
+# ✅ Bitget API থেকে মার্কেট ডেটা আনা
+async def fetch_symbols():
     url = "https://api.bitget.com/api/v2/mix/market/tickers?productType=umcbl"
     async with aiohttp.ClientSession() as session:
-        async with session.get(url) as resp:
-            data = await resp.json()
-            all_symbols = [x["symbol"] for x in data["data"]]
+        try:
+            async with session.get(url) as resp:
+                print(f"🔄 Bitget API Status: {resp.status}")
+                text = await resp.text()
+                print(f"📥 Bitget API Response: {text[:500]}")  # বড় response কাটছাঁট করে দেখানো
+                if resp.status == 200:
+                    return await resp.json()
+                else:
+                    logging.error(f"❌ Failed to fetch symbols: HTTP {resp.status}")
+                    return None
+        except Exception as e:
+            logging.error(f"❌ Exception during fetch_symbols: {e}")
+            return None
 
-        top_100 = all_symbols[:100]
-        logging.info("🚀 Scanning Top 100 Symbols...")
+# ✅ মূল স্ক্যানার ফাংশন
+async def run_scanner():
+    data = await fetch_symbols()
+    if data is None or "data" not in data:
+        logging.error("❌ Symbol data fetch failed or 'data' key missing in response.")
+        return
 
-        tasks = [scan_symbol(session, symbol) for symbol in top_100]
-        await asyncio.gather(*tasks)
+    try:
+        all_symbols = [x["symbol"] for x in data["data"]]
+        print(f"✅ Total symbols fetched: {len(all_symbols)}")
+
+        # ✅ এখানে ট্রেডিং লজিক বসবে — এখন শুধু ডেমো প্রিন্ট এবং টেলিগ্রাম বার্তা পাঠানো হচ্ছে
+        for symbol in all_symbols[:5]:  # শুধু প্রথম ৫টা সিম্বল
+            print(f"🔍 Scanning {symbol}")
+            await send_telegram_message(f"🟢 Scanned symbol: {symbol}")
+
+    except Exception as e:
+        logging.error(f"❌ Exception in run_scanner: {e}")
