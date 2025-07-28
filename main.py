@@ -1,40 +1,33 @@
-import asyncio
-from scanner import scan_market
-from telegram_bot import send_telegram_alert
-from flask import Flask
-import os
-from dotenv import load_dotenv
+# main.py
 
-load_dotenv()
+import asyncio
+import logging
+from scanner import run_scanner
+from flask import Flask
+
+logging.basicConfig(level=logging.INFO)
 app = Flask(__name__)
 
-@app.route("/")
+@app.route('/')
 def home():
-    return "✅ AsmanDip Bot is Running..."
+    return "✅ AsmanDip Future Scanner Bot is running."
 
-async def main_loop():
+# Use asyncio.create_task inside an async event loop
+async def main_async():
+    logging.info("🟢 Starting AsmanDip Future Scanner Bot...")
     while True:
-        try:
-            print("🔍 Scanning market...")
-            signals = await scan_market()
-            for symbol, signal in signals:
-                msg = (
-                    f"📈 *Signal: {symbol}*\n"
-                    f"🟢 Confirmations: {signal['confirmations']}/5\n"
-                    f"💵 Close: {signal['close']}\n"
-                    f"📉 RSI: {signal['rsi']}\n"
-                    f"📊 EMA(20): {signal['ema']}\n"
-                    f"📈 MACD: {signal['macd']}, Signal: {signal['macd_signal']}\n"
-                    f"📦 Volume: {signal['volume']}\n"
-                    f"🌊 ATR: {signal['atr']}\n"
-                    f"#bitget #future #signal"
-                )
-                await send_telegram_alert(msg)
-        except Exception as e:
-            print(f"❌ Error in main loop: {e}")
-        await asyncio.sleep(180)  # every 3 minutes
+        await run_scanner()
+        await asyncio.sleep(60)  # Scan every 60 seconds (adjust as needed)
 
-if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    loop.create_task(main_loop())
-    app.run(host="0.0.0.0", port=8000)
+def start_async_loop():
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.create_task(main_async())
+    loop.run_forever()
+
+if __name__ == '__main__':
+    import threading
+    # Run scanner in background thread
+    threading.Thread(target=start_async_loop).start()
+    # Run Flask app
+    app.run(host='0.0.0.0', port=8000)
