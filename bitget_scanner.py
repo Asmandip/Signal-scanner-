@@ -2,7 +2,7 @@
 import aiohttp
 
 async def get_bitget_pairs():
-    url = "https://api.bitget.com/api/v2/mix/market/tickers?productType=umcbl"
+    url = https://api.bitget.com/api/v2/mix/market/contracts?productType=usdt-futures
     async with aiohttp.ClientSession() as session:
         try:
             async with session.get(url) as response:
