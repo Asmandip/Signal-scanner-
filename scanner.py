@@ -1,20 +1,25 @@
-async def fetch_symbols():
-    url = "https://api.bitget.com/api/v2/mix/market/tickers?productType=umcbl"
-    headers = {
-        "Content-Type": "application/json"
-    }
+# scanner.py
 
-    async with aiohttp.ClientSession() as session:
-        try:
-            async with session.get(url, headers=headers) as resp:
-                print(f"🔄 Bitget API Status: {resp.status}")
-                text = await resp.text()
-                print(f"\n📥 FULL RESPONSE TEXT:\n{text}\n")  # 👉 এটা দেখতেই হবে
-                if resp.status == 200:
-                    return await resp.json()
-                else:
-                    logging.error(f"❌ Failed to fetch symbols: HTTP {resp.status}")
-                    return None
-        except Exception as e:
-            logging.error(f"❌ Exception during fetch_symbols: {e}")
-            return None
+import aiohttp
+import logging
+
+async def fetch_tickers():
+    url = "https://api.bitget.com/api/v2/mix/market/tickers?productType=USDT-FUTURES"
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as resp:
+                if resp.status != 200:
+                    text = await resp.text()
+                    logging.error(f"❌ Ticker fetch failed: {resp.status} — {text}")
+                    return []
+                data = await resp.json()
+                return data.get("data", [])
+    except Exception as e:
+        logging.error(f"❌ Exception in fetch_tickers: {e}")
+        return []
+
+async def run_scanner():
+    logging.info("🔍 Running Bitget scanner...")
+    tickers = await fetch_tickers()
+    logging.info(f"✅ Tickers fetched: {len(tickers)} symbols")
+    # You can add logic here to filter/sort or scan based on RSI, etc.
