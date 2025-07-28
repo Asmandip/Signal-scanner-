@@ -1,17 +1,18 @@
-import os
 import asyncio
 from flask import Flask
 from scanner import run_scanner
-from dotenv import load_dotenv
+import logging
 
-load_dotenv()
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("scanner")
+
 app = Flask(__name__)
 
-@app.route('/')
+@app.route("/")
 def home():
-    return "✅ AsmanDip Future Scanner Bot is running..."
+    return "✅ AsmanDip Future Signal Bot is LIVE!"
 
-if __name__ == '__main__':
-    print("🟢 Starting AsmanDip Future Scanner Bot...")
-    asyncio.run(run_scanner())
-    app.run(host='0.0.0.0', port=8000)
+if __name__ == "__main__":
+    logger.info("🟢 Starting AsmanDip Future Scanner Bot...")
+    asyncio.create_task(run_scanner())
+    app.run(host="0.0.0.0", port=8000)
