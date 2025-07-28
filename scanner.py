@@ -3,15 +3,19 @@ import asyncio
 import pandas as pd
 import datetime
 import time
+import os
+import logging
 from ta.momentum import RSIIndicator
 from ta.trend import EMAIndicator, MACD
 from ta.volatility import AverageTrueRange
 from dotenv import load_dotenv
-import os
-import logging
-from utils.telegram import send_telegram_message  # make sure this exists
+from utils.telegram import send_telegram_message
 
+# Load environment variables
 load_dotenv()
+
+# Logging setup
+logging.basicConfig(level=logging.INFO)
 
 INTERVAL = "3m"
 LIMIT = 100
@@ -84,12 +88,12 @@ async def scan_symbol(session, symbol):
     if confirmations >= 3:
         direction = "BUY" if last["rsi"] < 50 else "SELL"
         signal = f"""
-📡 Signal Alert: {symbol}
-📊 Action: {direction}
-🧠 Confirmations: {confirmations}/4
+📡 *Signal Alert:* `{symbol}`
+📊 *Action:* {direction}
+🧠 *Confirmations:* {confirmations}/4
 {chr(10).join(reasons)}
-📈 Price: {round(last['close'], 4)}
-🕒 Time: {last['timestamp'].strftime('%H:%M:%S')}
+📈 *Price:* {round(last['close'], 4)}
+🕒 *Time:* {last['timestamp'].strftime('%H:%M:%S')}
 """
         await send_telegram_message(signal)
 
