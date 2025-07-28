@@ -1,47 +1,46 @@
-import os
+limport aiohttp
 import asyncio
-import aiohttp
+import os
 import logging
-from dotenv import load_dotenv
-from utils import analyze_data, send_telegram_signal, fetch_klines
-
-load_dotenv()
-
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
-CHAT_ID = os.getenv("CHAT_ID")
 
 logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-HEADERS = {
-    'Content-Type': 'application/json'
-}
-SYMBOLS_URL = "https://api.bitget.com/api/v2/mix/market/tickers?productType=umcbl"
+BITGET_TICKER_URL = "https://api.bitget.com/api/v2/mix/market/tickers?productType=umcbl"
 
-async def fetch_symbols(session):
-    async with session.get(SYMBOLS_URL) as res:
-        if res.status != 200:
-            logging.error(f"❌ Bitget ticker fetch failed: {res.status}")
-            return []
-        data = await res.json()
-        return [item["symbol"] for item in data.get("data", [])]
-
-async def scan_market():
-    async with aiohttp.ClientSession() as session:
-        symbols = await fetch_symbols(session)
-        tasks = [scan_symbol(session, symbol) for symbol in symbols]
-        await asyncio.gather(*tasks)
-
-async def scan_symbol(session, symbol):
+async def fetch_tickers(session):
     try:
-        klines = await fetch_klines(session, symbol, "3m", 100)
-        if not klines:
-            return
-        signal = analyze_data(klines)
-        if signal:
-            await send_telegram_signal(symbol, signal)
+        async with session.get(BITGET_TICKER_URL) as resp:
+            if resp.status == 200:
+                data = await resp.json()
+                return data.get("data", [])
+            else:
+                logger.error(f"❌ Bitget ticker fetch failed: {resp.status}")
+                return []
     except Exception as e:
-        logging.error(f"Error scanning {symbol}: {e}")
+        logger.error(f"❌ Error fetching tickers: {str(e)}")
+        return []
 
-def run_scanner():
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(scan_market())
+async def scan_pair(session, symbol):
+    INTERVAL = "1"
+    LIMIT = 100
+    url = f"https://api.bitget.com/api/v2/mix/market/candles?symbol={symbol}&granularity={INTERVAL}&limit={LIMIT}"
+    try:
+        async with session.get(url) as resp:
+            if resp.status == 200:
+                data = await resp.json()
+                logger.info(f"✅ Candles fetched for {symbol}")
+            else:
+                logger.warning(f"⚠️ Failed to fetch data for {symbol}: {resp.status}")
+    except Exception as e:
+        logger.error(f"❌ Exception for {symbol}: {str(e)}")
+
+async def run_scanner():
+    logger.info("📡 Scanner started...")
+    async with aiohttp.ClientSession() as session:
+        tickers = await fetch_tickers(session)
+        if not tickers:
+            return
+        top_symbols = [t['symbol'] for t in tickers[:10]]
+        tasks = [scan_pair(session, symbol) for symbol in top_symbols]
+        await asyncio.gather(*tasks)
