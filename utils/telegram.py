@@ -15,4 +15,4 @@ async def send_telegram_message(text):
                 if resp.status != 200:
                     print(f"Telegram Error: {await resp.text()}")
         except Exception as e:
-            print(f"Telegram Send Failed: {e}")
+            print(f"Telegram Send Failed: {e}"
