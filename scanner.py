@@ -1,9 +1,6 @@
 import aiohttp
 import asyncio
 import pandas as pd
-import datetime
-import time
-import os
 import logging
 from ta.momentum import RSIIndicator
 from ta.trend import EMAIndicator, MACD
@@ -11,7 +8,7 @@ from ta.volatility import AverageTrueRange
 from dotenv import load_dotenv
 from utils.telegram import send_telegram_message
 
-# Load environment variables
+# Load .env
 load_dotenv()
 
 # Logging setup
@@ -23,39 +20,38 @@ RSI_PERIOD = 14
 RSI_OVERBOUGHT = 70
 RSI_OVERSOLD = 30
 
-HEADERS = {
-    "Content-Type": "application/json"
-}
+HEADERS = {"Content-Type": "application/json"}
 
 async def fetch_klines(session, symbol):
     url = f"https://api.bitget.com/api/v2/mix/market/candles?symbol={symbol}&granularity={INTERVAL}&limit={LIMIT}"
     try:
         async with session.get(url, headers=HEADERS) as resp:
-            if resp.status == 200:
-                data = await resp.json()
-                df = pd.DataFrame(data['data'], columns=[
-                    "timestamp", "open", "high", "low", "close", "volume", "quoteVolume"
-                ])
-                df["close"] = pd.to_numeric(df["close"])
-                df["high"] = pd.to_numeric(df["high"])
-                df["low"] = pd.to_numeric(df["low"])
-                df["open"] = pd.to_numeric(df["open"])
-                df["volume"] = pd.to_numeric(df["volume"])
-                df["timestamp"] = pd.to_datetime(df["timestamp"], unit="ms")
-                return df
+            if resp.status != 200:
+                logging.error(f"❌ Error fetching {symbol} candles: {resp.status}")
+                return None
+            data = await resp.json()
+            if "data" not in data:
+                logging.warning(f"❌ No data in response for {symbol}: {data}")
+                return None
+            df = pd.DataFrame(data['data'], columns=[
+                "timestamp", "open", "high", "low", "close", "volume", "quoteVolume"
+            ])
+            df["close"] = pd.to_numeric(df["close"])
+            df["high"] = pd.to_numeric(df["high"])
+            df["low"] = pd.to_numeric(df["low"])
+            df["open"] = pd.to_numeric(df["open"])
+            df["volume"] = pd.to_numeric(df["volume"])
+            df["timestamp"] = pd.to_datetime(df["timestamp"], unit="ms")
+            return df
     except Exception as e:
-        logging.warning(f"Error fetching {symbol}: {str(e)}")
+        logging.warning(f"⚠️ Exception while fetching {symbol}: {str(e)}")
     return None
 
 def analyze_data(df):
-    rsi = RSIIndicator(close=df["close"], window=RSI_PERIOD).rsi()
-    df["rsi"] = rsi
-    macd = MACD(close=df["close"])
-    df["macd"] = macd.macd_diff()
-    ema = EMAIndicator(close=df["close"], window=20)
-    df["ema"] = ema.ema_indicator()
-    atr = AverageTrueRange(high=df["high"], low=df["low"], close=df["close"], window=14)
-    df["atr"] = atr.average_true_range()
+    df["rsi"] = RSIIndicator(close=df["close"], window=RSI_PERIOD).rsi()
+    df["macd"] = MACD(close=df["close"]).macd_diff()
+    df["ema"] = EMAIndicator(close=df["close"], window=20).ema_indicator()
+    df["atr"] = AverageTrueRange(high=df["high"], low=df["low"], close=df["close"], window=14).average_true_range()
     return df
 
 async def scan_symbol(session, symbol):
@@ -101,11 +97,16 @@ async def run_scanner():
     url = "https://api.bitget.com/api/v2/mix/market/tickers?productType=umcbl"
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as resp:
+            if resp.status != 200:
+                logging.error(f"❌ Bitget ticker fetch failed: {resp.status}")
+                return
             data = await resp.json()
+            if "data" not in data:
+                logging.error("❌ Unexpected Bitget response:", data)
+                return
             all_symbols = [x["symbol"] for x in data["data"]]
+            top_100 = all_symbols[:100]
+            logging.info("🚀 Scanning Top 100 Symbols...")
 
-        top_100 = all_symbols[:100]
-        logging.info("🚀 Scanning Top 100 Symbols...")
-
-        tasks = [scan_symbol(session, symbol) for symbol in top_100]
-        await asyncio.gather(*tasks)
+            tasks = [scan_symbol(session, symbol) for symbol in top_100]
+            await asyncio.gather(*tasks)
