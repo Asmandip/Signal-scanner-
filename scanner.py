@@ -23,7 +23,7 @@ RSI_OVERSOLD = 30
 HEADERS = {"Content-Type": "application/json"}
 
 async def fetch_klines(session, symbol):
-    url =url = f"https://api.bitget.com/api/v2/mix/market/candles?symbol={symbol}&granularity={INTERVAL}&limit={LIMIT}"
+    url =url = f"https://api.bitget.com/api/v2/mix/market/candles?symbol={symbol}&granularity={interval}
     try:
         async with session.get(url, headers=HEADERS) as resp:
             if resp.status != 200:
